@@ -1,6 +1,8 @@
-<img src="docs/docent-icon.svg" width="80" height="80" />
-
-# Docent
+<div align="center">
+  <img src="docs/docent-icon.svg" width="80" height="80" />
+  
+  # Docent
+</div>
 
 `Docent` guides users through your data application the way a museum docent guides visitors through an exhibition — bringing expert context to complex material. It adds a natural language AI interface to scenario-driven modelling applications, letting non-technical users ask questions, run scenarios, and interpret results without leaving their workflow.
 
