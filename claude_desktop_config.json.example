@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "docent": {
+      "command": "python",
+      "args": ["-m", "docent.adapters.mcp_server"],
+      "env": {
+        "ANTHROPIC_API_KEY": "your-api-key-here",
+        "AI_PROVIDER": "claude"
+      }
+    }
+  }
+}
