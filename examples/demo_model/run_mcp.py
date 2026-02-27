@@ -11,9 +11,10 @@ from docent.application.service import PortfolioService
 
 from model import build_repository, build_runner
 
+repository = build_repository()
+runner = build_runner()
+service = PortfolioService(runner=runner, repository=repository)
+set_service(service)
+
 if __name__ == "__main__":
-    repository = build_repository()
-    runner = build_runner()
-    service = PortfolioService(runner=runner, repository=repository)
-    set_service(service)
     mcp.run()

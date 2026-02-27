@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-# Entrypoint: Syncs the uv environment and starts the application.
-#             Defaults to the MCP server; pass a different command to override.
-#             Usage: ./entrypoint.sh [command]
+# Entrypoint: Syncs the uv environment then executes the given command.
+#             Usage: ./entrypoint.sh <command> [args...]
 #             Examples:
-#               ./entrypoint.sh                  # starts docent-mcp server
-#               ./entrypoint.sh docent --help    # runs CLI
+#               ./entrypoint.sh docent --help
+#               ./entrypoint.sh docent-mcp
+#               ./entrypoint.sh pytest
 
 set -e
 set -x
 
 uv sync --all-extras
 
-exec uv run "${@:-docent-mcp}"
+exec uv run "$@"
