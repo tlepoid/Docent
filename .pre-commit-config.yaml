@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: fix-byte-order-marker
+      - id: pretty-format-json
+        args: [--autofix, --indent, "2", --no-ensure-ascii]
+        exclude: \.ipynb$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.12.12"
+    hooks:
+      - id: ruff
+        types_or: [python, pyi]
+        args: [--fix]
+        files: ^(src|tests)/
+      - id: ruff-format
+        types_or: [python, pyi]
+        files: ^(src|tests)/
