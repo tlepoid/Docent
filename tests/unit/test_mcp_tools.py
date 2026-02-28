@@ -7,11 +7,11 @@ The MCP server module is wired with the test service via set_service().
 import pytest
 
 import docent.adapters.mcp_server.server as mcp_module
-from docent.application.service import PortfolioService
+from docent.application.service import ModelService
 
 
 @pytest.fixture(autouse=True)
-def wired_service(service: PortfolioService) -> None:
+def wired_service(service: ModelService) -> None:
     """Wire the test service into the MCP server module for each test."""
     mcp_module.set_service(service)
     yield

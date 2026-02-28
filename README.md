@@ -1,7 +1,8 @@
 <div align="center">
   <img src="docs/docent-icon.svg" width="80" height="80" />
-  
-  # Docent
+
+# Docent
+
 </div>
 
 `Docent` guides users through your data application the way a museum docent guides visitors through an exhibition — bringing expert context to complex material. It adds a natural language AI interface to scenario-driven modelling applications, letting non-technical users ask questions, run scenarios, and interpret results without leaving their workflow.
@@ -19,7 +20,7 @@ docent/
 │   │   ├── models.py        # ScenarioDefinition, ScenarioResult, ModelSchema, etc.
 │   │   └── ports.py         # ScenarioRunner, ModelRepository (abstract interfaces)
 │   ├── application/
-│   │   └── service.py       # PortfolioService — single entry point for all business logic
+│   │   └── service.py       # ModelService — single entry point for all business logic
 │   ├── adapters/
 │   │   ├── cli/             # Click-based CLI adapter
 │   │   ├── mcp_server/      # FastMCP server adapter (for Claude Desktop / MCP clients)
@@ -37,6 +38,8 @@ docent/
     ├── unit/
     └── integration/
 ```
+
+`docent` is the library — install it as a dependency and build your model on top of it, just as you would with `fastapi` or `click`. Your model code lives in your own project; `docent` provides the service layer, AI interface, CLI, and MCP server.
 
 ---
 
@@ -65,19 +68,27 @@ cp .env.example .env
 
 ```bash
 # List scenarios
-docent scenarios
+docent --service examples.demo_model.model:build_service scenarios
 
 # Run a scenario
-docent run base_case
+docent --service examples.demo_model.model:build_service run base_case
 
 # Run with an override
-docent run base_case -o credit_spread_ig=2.5
+docent --service examples.demo_model.model:build_service run base_case -o credit_spread_ig=2.5
 
 # Compare two scenarios
-docent compare base_case credit_stress
+docent --service examples.demo_model.model:build_service compare base_case credit_stress
 
-# Print the model schema
-docent schema
+# Chat with an AI about the model
+docent --service examples.demo_model.model:build_service chat
+```
+
+Set `DOCENT_SERVICE` in your environment to avoid repeating the flag:
+
+```bash
+export DOCENT_SERVICE=examples.demo_model.model:build_service
+docent run base_case
+docent chat "what happens to duration in the stagflation scenario?"
 ```
 
 ### 4. Start the MCP Server
@@ -85,16 +96,15 @@ docent schema
 **With the demo model:**
 
 ```bash
-cd examples/demo_model
-python run_mcp.py
+uv run mcp dev examples/demo_model/run_mcp.py
 ```
 
-**Default stub (replace with your own model):**
+**Via the entry point:**
 
 ```bash
-docent-mcp
+docent-mcp examples.demo_model.model:build_service
 # or
-python -m docent.adapters.mcp_server
+python -m docent.adapters.mcp_server examples.demo_model.model:build_service
 ```
 
 ### 5. Connect Claude Desktop
@@ -106,7 +116,7 @@ Copy `claude_desktop_config.json.example` into your Claude Desktop config:
   "mcpServers": {
     "docent": {
       "command": "python",
-      "args": ["-m", "docent.adapters.mcp_server"],
+      "args": ["-m", "docent.adapters.mcp_server", "myapp.model:build_service"],
       "env": {
         "ANTHROPIC_API_KEY": "your-api-key-here"
       }
@@ -116,38 +126,85 @@ Copy `claude_desktop_config.json.example` into your Claude Desktop config:
 ```
 
 Then ask Claude things like:
-- *"Run the credit stress scenario and tell me what happened to portfolio duration."*
-- *"Override the credit spread input to 250bps and rerun the base case."*
-- *"What are the key assumptions in this model?"*
-- *"Compare the stagflation and rates_shock_up scenarios."*
+
+- _"Run the credit stress scenario and tell me what happened to portfolio duration."_
+- _"Override the credit spread input to 250bps and rerun the base case."_
+- _"What are the key assumptions in this model?"_
+- _"Compare the stagflation and rates_shock_up scenarios."_
 
 ---
 
 ## Connecting Your Own Model
 
-Docent uses the ports & adapters pattern. To connect your own model:
+`docent` is a library — your model code lives in your own project. A typical layout:
 
-1. Implement `ScenarioRunner` (executes your model logic)
-2. Implement `ModelRepository` (provides your scenarios and schema)
-3. Wire them into `PortfolioService`
-4. Point the MCP server or CLI at your service
-
-The simplest approach uses the built-in `FunctionalScenarioRunner` and `InMemoryModelRepository`:
+```
+my-risk-app/
+├── pyproject.toml           # dependencies = ["docent[claude]"]
+├── .env                     # ANTHROPIC_API_KEY=...
+└── src/myapp/
+    ├── model.py             # schema, scenarios, model_fn, build_service()
+    └── run_mcp.py           # calls docent.run_mcp(service)
+```
 
 ```python
-from docent.adapters.data.in_memory import FunctionalScenarioRunner, InMemoryModelRepository
-from docent.application.service import PortfolioService
-from docent.adapters.mcp_server.server import mcp, set_service
+# src/myapp/model.py
+import docent
+
+service = docent.create(
+    model_fn=my_model_fn,
+    base_inputs=MY_BASE_INPUTS,
+    schema=MY_SCHEMA,
+    scenarios=MY_SCENARIOS,
+)
+```
+
+```python
+# src/myapp/run_mcp.py
+import docent
+from myapp.model import service
+
+if __name__ == "__main__":
+    docent.run_mcp(service)
+```
+
+```bash
+# CLI — point --service at any module:attribute that returns a ModelService
+docent --service myapp.model:service scenarios
+docent --service myapp.model:service run base_case
+docent --service myapp.model:service chat
+```
+
+Docent uses the ports & adapters pattern. The quickest way to wire up any Python model function:
+
+```python
+import docent
 
 def my_model(inputs: dict) -> dict:
     # Your model logic here
     return {"metric_a": ..., "metric_b": ...}
 
-repository = InMemoryModelRepository(schema=MY_SCHEMA, scenarios=MY_SCENARIOS)
-runner = FunctionalScenarioRunner(model_fn=my_model, base_inputs=MY_BASE_INPUTS)
-service = PortfolioService(runner=runner, repository=repository)
-set_service(service)
-mcp.run()
+service = docent.create(
+    model_fn=my_model,
+    base_inputs=MY_BASE_INPUTS,
+    schema=MY_SCHEMA,
+    scenarios=MY_SCENARIOS,
+)
+
+if __name__ == "__main__":
+    docent.run_mcp(service)
+```
+
+For custom storage or execution backends, implement `ScenarioRunner` and `ModelRepository` directly and pass them to `ModelService`:
+
+```python
+from docent import ModelService
+from docent.domain.ports import ScenarioRunner, ModelRepository
+
+class MyRunner(ScenarioRunner): ...
+class MyRepository(ModelRepository): ...
+
+service = ModelService(runner=MyRunner(), repository=MyRepository())
 ```
 
 See `examples/demo_model/model.py` for a complete worked example.
@@ -158,10 +215,10 @@ See `examples/demo_model/model.py` for a complete worked example.
 
 Set `AI_PROVIDER` in your environment:
 
-| Value | Provider | Required env vars |
-|-------|----------|------------------|
-| `claude` (default) | Anthropic Claude | `ANTHROPIC_API_KEY` |
-| `azure_openai` | Azure OpenAI | `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT` |
+| Value              | Provider         | Required env vars                                                          |
+| ------------------ | ---------------- | -------------------------------------------------------------------------- |
+| `claude` (default) | Anthropic Claude | `ANTHROPIC_API_KEY`                                                        |
+| `azure_openai`     | Azure OpenAI     | `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT` |
 
 Tool definitions live in `src/docent/ai/tools/definitions.py` in OpenAI function-calling
 JSON schema format — a single source of truth consumed by all providers.
@@ -182,7 +239,7 @@ Docent enforces strict separation between layers:
 
 - **Domain** (`domain/`) — pure Python dataclasses and abstract interfaces; no framework code
 - **Application** (`application/service.py`) — business logic; no framework code; tested directly
-- **Adapters** (`adapters/`) — thin translation layers; CLI and MCP server both call `PortfolioService`
+- **Adapters** (`adapters/`) — thin translation layers; CLI and MCP server both call `ModelService`
 - **AI** (`ai/`) — provider adapters and dispatcher; no business logic; no provider-specific code outside its own module
 
-The MCP server and CLI are parallel entry points into the same application layer. They share no code with each other except through `PortfolioService`.
+The MCP server and CLI are parallel entry points into the same application layer. They share no code with each other except through `ModelService`.

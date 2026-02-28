@@ -11,7 +11,7 @@ from docent.adapters.data.in_memory import (
     FunctionalScenarioRunner,
     InMemoryModelRepository,
 )
-from docent.application.service import PortfolioService
+from docent.application.service import ModelService
 from docent.domain.models import (
     InputField,
     ModelSchema,
@@ -85,11 +85,11 @@ def service(
     schema: ModelSchema,
     scenarios: list[ScenarioDefinition],
     simple_model: Callable[[dict[str, Any]], dict[str, Any]],
-) -> PortfolioService:
-    """Build a wired PortfolioService backed by the test schema and scenarios."""
+) -> ModelService:
+    """Build a wired ModelService backed by the test schema and scenarios."""
     repository = InMemoryModelRepository(schema=schema, scenarios=scenarios)
     runner = FunctionalScenarioRunner(
         model_fn=simple_model,
         base_inputs={"rate": 5.0},
     )
-    return PortfolioService(runner=runner, repository=repository)
+    return ModelService(runner=runner, repository=repository)

@@ -1,6 +1,6 @@
 """MCP Server adapter for Docent.
 
-Exposes the PortfolioService as an MCP server with tools, resources, and prompts.
+Exposes the ModelService as an MCP server with tools, resources, and prompts.
 This adapter sits alongside the CLI as a parallel entry point into the application
 layer — it does not bypass or duplicate any domain logic.
 
@@ -16,26 +16,26 @@ import json
 
 from mcp.server.fastmcp import FastMCP
 
-from docent.application.service import PortfolioService
+from docent.application.service import ModelService
 
 # Module-level service instance set by the application wiring.
 # Using a module-level variable allows the MCP decorators to close over it
 # while keeping the server testable via set_service().
-_service: PortfolioService | None = None
+_service: ModelService | None = None
 
 mcp = FastMCP("Docent")
 
 
-def set_service(service: PortfolioService) -> None:
-    """Wire the PortfolioService instance used by this MCP server."""
+def set_service(service: ModelService) -> None:
+    """Wire the ModelService instance used by this MCP server."""
     global _service
     _service = service
 
 
-def _get_service() -> PortfolioService:
+def _get_service() -> ModelService:
     if _service is None:
         raise RuntimeError(
-            "PortfolioService has not been wired. "
+            "ModelService has not been wired. "
             "Call set_service() before starting the server."
         )
     return _service
@@ -284,16 +284,25 @@ def explain_input_sensitivity(input_field: str) -> str:
 
 
 def main() -> None:
-    """
-    Start the MCP server.
+    """Start the MCP server.
 
-    Uses the stub wiring by default. Replace the wiring below with your own
-    ModelRepository and ScenarioRunner implementations, or see examples/demo_model/
-    for a complete worked example.
-    """
-    from docent.adapters.data.in_memory import _build_stub_wiring
+    Reads an optional service path from the first CLI argument::
 
-    repository, runner = _build_stub_wiring()
-    service = PortfolioService(runner=runner, repository=repository)
+        docent-mcp myapp.model:build_service
+
+    Falls back to stub wiring if no path is given.
+    """
+    import sys
+
+    if len(sys.argv) > 1:
+        import docent as _docent
+
+        service = _docent.load_service(sys.argv[1])
+    else:
+        from docent.adapters.data.in_memory import _build_stub_wiring
+
+        repository, runner = _build_stub_wiring()
+        service = ModelService(runner=runner, repository=repository)
+
     set_service(service)
     mcp.run()

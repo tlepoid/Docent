@@ -18,7 +18,7 @@ from docent.domain.models import (
 from docent.domain.ports import ModelRepository, ScenarioRunner
 
 
-class PortfolioService:
+class ModelService:
     """
     Framework-agnostic application service layer.
 
