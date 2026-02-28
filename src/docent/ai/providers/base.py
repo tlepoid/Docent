@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -16,10 +15,10 @@ class AIMessage:
     """A single message in a conversation, normalised across all providers."""
 
     role: str  # "system" | "user" | "assistant" | "tool"
-    content: Optional[str] = None
-    tool_calls: Optional[list[dict]] = None  # [{id, name, arguments}]
-    tool_call_id: Optional[str] = None       # for role="tool" responses
-    name: Optional[str] = None               # tool name for role="tool"
+    content: str | None = None
+    tool_calls: list[dict] | None = None  # [{id, name, arguments}]
+    tool_call_id: str | None = None  # for role="tool" responses
+    name: str | None = None  # tool name for role="tool"
 
 
 @dataclass
@@ -27,7 +26,7 @@ class AIResponse:
     """Normalised response from an AI provider."""
 
     message: AIMessage
-    tool_calls: list[dict] = field(default_factory=list)  # [{id, name, arguments: dict}]
+    tool_calls: list[dict] = field(default_factory=list)  # [{id, name, arguments}]
     finish_reason: str = "stop"
 
 
@@ -45,7 +44,7 @@ class AIProvider(ABC):
         self,
         messages: list[AIMessage],
         tools: list[dict],
-        system: Optional[str] = None,
+        system: str | None = None,
     ) -> AIResponse:
         """
         Send a conversation to the provider and return a normalised response.

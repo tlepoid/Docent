@@ -13,16 +13,15 @@ or via the entry point:
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from ...application.service import PortfolioService
+from docent.application.service import PortfolioService
 
 # Module-level service instance set by the application wiring.
 # Using a module-level variable allows the MCP decorators to close over it
 # while keeping the server testable via set_service().
-_service: Optional[PortfolioService] = None
+_service: PortfolioService | None = None
 
 mcp = FastMCP("Docent")
 
@@ -36,7 +35,8 @@ def set_service(service: PortfolioService) -> None:
 def _get_service() -> PortfolioService:
     if _service is None:
         raise RuntimeError(
-            "PortfolioService has not been wired. Call set_service() before starting the server."
+            "PortfolioService has not been wired. "
+            "Call set_service() before starting the server."
         )
     return _service
 
@@ -45,8 +45,9 @@ def _get_service() -> PortfolioService:
 # Tools — actions Claude can invoke
 # ------------------------------------------------------------------
 
+
 @mcp.tool()
-def run_scenario(name: str, overrides: Optional[dict[str, float]] = None) -> dict:
+def run_scenario(name: str, overrides: dict[str, float] | None = None) -> dict:
     """
     Run a named scenario through the portfolio model.
 
@@ -90,7 +91,7 @@ def reset_overrides() -> dict:
 def compare_scenarios(
     scenario_a: str,
     scenario_b: str,
-    metrics: Optional[list[str]] = None,
+    metrics: list[str] | None = None,
 ) -> dict:
     """
     Run two scenarios and return a structured side-by-side comparison.
@@ -107,7 +108,7 @@ def compare_scenarios(
 
 @mcp.tool()
 def get_available_scenarios() -> dict:
-    """List all configured scenarios with their names, descriptions, and stress rationale."""
+    """List all configured scenarios with names, descriptions, and stress rationale."""
     try:
         scenarios = _get_service().get_available_scenarios()
         return {"scenarios": [s.to_dict() for s in scenarios]}
@@ -118,6 +119,7 @@ def get_available_scenarios() -> dict:
 # ------------------------------------------------------------------
 # Resources — context Claude can read
 # ------------------------------------------------------------------
+
 
 @mcp.resource("model://schema")
 def get_model_schema() -> str:
@@ -137,7 +139,7 @@ def get_model_schema() -> str:
 
 @mcp.resource("model://scenarios")
 def get_scenarios_resource() -> str:
-    """Current scenario definitions, including what each is designed to stress-test."""
+    """Return scenario definitions, including what each is designed to stress-test."""
     try:
         scenarios = _get_service().get_available_scenarios()
         return json.dumps([s.to_dict() for s in scenarios], indent=2)
@@ -171,6 +173,7 @@ def get_current_overrides() -> str:
 # ------------------------------------------------------------------
 # Prompts — reusable AI prompt templates
 # ------------------------------------------------------------------
+
 
 @mcp.prompt()
 def explain_scenario_result(scenario_name: str) -> str:
@@ -212,9 +215,10 @@ def compare_scenarios_narrative(scenario_a: str, scenario_b: str) -> str:
             f"and narrate the key differences for a senior investment committee.\n\n"
             f"Model: {schema.name}\n"
             f"Comparing: '{scenario_a}' vs '{scenario_b}'\n\n"
-            f"Comparison data:\n{json.dumps(comparison.to_dict(), indent=2)}\n\n"
-            f"Focus on: the most significant differences, which scenario is more stressful "
-            f"and why, and what risk factors are driving the divergence."
+            "Comparison data:\n"
+            f"{json.dumps(comparison.to_dict(), indent=2)}\n\n"
+            "Focus on: the most significant differences, which scenario is more "
+            "stressful and why, and what risk factors are driving the divergence."
         )
     except Exception as exc:
         return f"Error generating prompt: {exc}"
@@ -238,11 +242,12 @@ def summarise_portfolio_risk() -> str:
             f"You are a chief risk officer. Summarise the portfolio's current risk "
             f"exposures based on the scenario results below.\n\n"
             f"Model: {schema.name}\n"
-            f"Active overrides: {json.dumps([o.to_dict() for o in overrides], indent=2)}\n\n"
-            f"Scenario results:\n"
+            "Active overrides: "
+            f"{json.dumps([o.to_dict() for o in overrides], indent=2)}\n\n"
+            "Scenario results:\n"
             f"{json.dumps({n: r.to_dict() for n, r in results.items()}, indent=2)}\n\n"
-            f"Focus on: overall risk level, which scenarios are most severe, key drivers "
-            f"of risk, and any concentrations or tail risks to flag."
+            "Focus on: overall risk level, which scenarios are most severe, "
+            "key drivers of risk, and any concentrations or tail risks to flag."
         )
     except Exception as exc:
         return f"Error generating prompt: {exc}"
@@ -260,12 +265,12 @@ def explain_input_sensitivity(input_field: str) -> str:
             else f"Field '{input_field}' not found in schema."
         )
         return (
-            f"You are a quantitative analyst. Explain how sensitive this portfolio model "
-            f"is to the following input, and what happens when it moves.\n\n"
+            "You are a quantitative analyst. Explain how sensitive this portfolio "
+            "model is to the following input, and what happens when it moves.\n\n"
             f"Model: {schema.name}\n"
             f"Input field: {input_field}\n"
             f"Field details:\n{field_desc}\n\n"
-            f"Explain: the financial meaning of this input, what drives it in practice, "
+            "Explain: the financial meaning of this input, what drives it in practice, "
             f"how the portfolio is exposed to it, and what a 1 standard deviation move "
             f"might mean for portfolio outcomes."
         )
@@ -277,6 +282,7 @@ def explain_input_sensitivity(input_field: str) -> str:
 # Entry point
 # ------------------------------------------------------------------
 
+
 def main() -> None:
     """
     Start the MCP server.
@@ -285,7 +291,7 @@ def main() -> None:
     ModelRepository and ScenarioRunner implementations, or see examples/demo_model/
     for a complete worked example.
     """
-    from ...adapters.data.in_memory import _build_stub_wiring
+    from docent.adapters.data.in_memory import _build_stub_wiring
 
     repository, runner = _build_stub_wiring()
     service = PortfolioService(runner=runner, repository=repository)

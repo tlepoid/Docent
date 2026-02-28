@@ -5,17 +5,18 @@ Useful for testing and for wiring up demo/example models.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
-from ...domain.models import (
+from docent.domain.models import (
     InputField,
     ModelSchema,
     OutputField,
     ScenarioDefinition,
     ScenarioResult,
 )
-from ...domain.ports import ModelRepository, ScenarioRunner
+from docent.domain.ports import ModelRepository, ScenarioRunner
 
 
 class InMemoryModelRepository(ModelRepository):
@@ -26,17 +27,25 @@ class InMemoryModelRepository(ModelRepository):
     Suitable for testing and for wrapping functional demo models.
     """
 
-    def __init__(self, schema: ModelSchema, scenarios: list[ScenarioDefinition]) -> None:
+    def __init__(
+        self,
+        schema: ModelSchema,
+        scenarios: list[ScenarioDefinition],
+    ) -> None:
+        """Initialise with a schema and list of scenario definitions."""
         self._schema = schema
         self._scenarios = scenarios
 
     def get_scenarios(self) -> list[ScenarioDefinition]:
+        """Return all available scenario definitions."""
         return list(self._scenarios)
 
     def get_schema(self) -> ModelSchema:
+        """Return the full model schema."""
         return self._schema
 
     def get_inputs(self) -> list[InputField]:
+        """Return current state of all model inputs."""
         return list(self._schema.inputs)
 
 
@@ -60,6 +69,7 @@ class FunctionalScenarioRunner(ScenarioRunner):
         model_fn: Callable[[dict[str, Any]], dict[str, Any]],
         base_inputs: dict[str, Any],
     ) -> None:
+        """Initialise with a model callable and its base input values."""
         self._model_fn = model_fn
         self._base_inputs = base_inputs
 
@@ -68,6 +78,7 @@ class FunctionalScenarioRunner(ScenarioRunner):
         scenario: ScenarioDefinition,
         extra_overrides: dict[str, Any],
     ) -> ScenarioResult:
+        """Run a scenario, merging its overrides and any extra overrides over base."""
         inputs = dict(self._base_inputs)
         inputs.update(scenario.overrides)
         inputs.update(extra_overrides)
@@ -79,13 +90,13 @@ class FunctionalScenarioRunner(ScenarioRunner):
             inputs_used=inputs,
             outputs=outputs,
             overrides_applied={**scenario.overrides, **extra_overrides},
-            run_at=datetime.now(timezone.utc).isoformat(),
+            run_at=datetime.now(UTC).isoformat(),
         )
 
 
 def _build_stub_wiring() -> tuple[InMemoryModelRepository, FunctionalScenarioRunner]:
-    """
-    Fallback stub wiring used when no real model is configured.
+    """Build fallback stub wiring used when no real model is configured.
+
     Returns a minimal repository and runner so the server starts without error.
     Replace this in your own entry point with real implementations.
     """

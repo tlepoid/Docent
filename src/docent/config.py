@@ -8,17 +8,22 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from docent.ai.providers.base import AIProvider
 
 
 @dataclass
 class Config:
-    ai_provider: str = "claude"              # "claude" | "azure_openai"
-    claude_api_key: Optional[str] = None
+    """Runtime configuration loaded from environment variables."""
+
+    ai_provider: str = "claude"  # "claude" | "azure_openai"
+    claude_api_key: str | None = None
     claude_model: str = "claude-sonnet-4-6"
-    azure_api_key: Optional[str] = None
-    azure_endpoint: Optional[str] = None
-    azure_deployment: Optional[str] = None
+    azure_api_key: str | None = None
+    azure_endpoint: str | None = None
+    azure_deployment: str | None = None
     azure_api_version: str = "2024-02-01"
 
 
@@ -26,6 +31,7 @@ def load_config() -> Config:
     """Load configuration from environment variables (and optional .env file)."""
     try:
         from dotenv import load_dotenv
+
         load_dotenv()
     except ImportError:
         pass  # python-dotenv is optional
@@ -41,17 +47,19 @@ def load_config() -> Config:
     )
 
 
-def build_provider(config: Optional[Config] = None):
+def build_provider(config: Config | None = None) -> AIProvider:
     """Instantiate the AI provider selected by configuration."""
     if config is None:
         config = load_config()
 
     if config.ai_provider == "claude":
-        from .ai.providers.claude import ClaudeProvider
+        from docent.ai.providers.claude import ClaudeProvider
+
         return ClaudeProvider(api_key=config.claude_api_key, model=config.claude_model)
 
     if config.ai_provider == "azure_openai":
-        from .ai.providers.azure_openai import AzureOpenAIProvider
+        from docent.ai.providers.azure_openai import AzureOpenAIProvider
+
         return AzureOpenAIProvider(
             api_key=config.azure_api_key,
             azure_endpoint=config.azure_endpoint,

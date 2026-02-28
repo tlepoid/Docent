@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..domain.models import (
+from docent.domain.models import (
     ModelSchema,
     Override,
     ScenarioComparison,
     ScenarioDefinition,
     ScenarioResult,
 )
-from ..domain.ports import ModelRepository, ScenarioRunner
+from docent.domain.ports import ModelRepository, ScenarioRunner
 
 
 class PortfolioService:
@@ -28,6 +28,7 @@ class PortfolioService:
     """
 
     def __init__(self, runner: ScenarioRunner, repository: ModelRepository) -> None:
+        """Initialise the service with a runner and repository."""
         self._runner = runner
         self._repository = repository
         self._overrides: list[Override] = []
@@ -85,9 +86,9 @@ class PortfolioService:
         self._last_results[name] = result
         return result
 
-    def override_input(self, source: str, field: str, value: Any) -> str:
-        """
-        Apply a session-level override to a specific input field.
+    def override_input(self, source: str, field: str, value: float) -> str:
+        """Apply a session-level override to a specific input field.
+
         Replaces any existing override for the same field.
         """
         self._overrides = [o for o in self._overrides if o.field != field]
@@ -106,8 +107,8 @@ class PortfolioService:
         scenario_b: str,
         metrics: list[str] | None = None,
     ) -> ScenarioComparison:
-        """
-        Run two scenarios and return a structured side-by-side comparison.
+        """Run two scenarios and return a structured side-by-side comparison.
+
         If metrics is None, all output fields present in both results are compared.
         """
         result_a = self.run_scenario(scenario_a)
@@ -131,9 +132,19 @@ class PortfolioService:
                         "pct_change": round(pct, 2) if pct is not None else None,
                     }
                 except (TypeError, ValueError):
-                    differences[metric] = {"a": val_a, "b": val_b, "delta": None, "pct_change": None}
+                    differences[metric] = {
+                        "a": val_a,
+                        "b": val_b,
+                        "delta": None,
+                        "pct_change": None,
+                    }
             else:
-                differences[metric] = {"a": val_a, "b": val_b, "delta": None, "pct_change": None}
+                differences[metric] = {
+                    "a": val_a,
+                    "b": val_b,
+                    "delta": None,
+                    "pct_change": None,
+                }
 
         return ScenarioComparison(
             scenario_a=result_a,

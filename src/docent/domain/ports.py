@@ -7,7 +7,12 @@ infrastructure/data layer. Concrete implementations live in adapters/data/.
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .models import InputField, ModelSchema, ScenarioDefinition, ScenarioResult
+from docent.domain.models import (
+    InputField,
+    ModelSchema,
+    ScenarioDefinition,
+    ScenarioResult,
+)
 
 
 class ScenarioRunner(ABC):
@@ -19,7 +24,7 @@ class ScenarioRunner(ABC):
         scenario: ScenarioDefinition,
         extra_overrides: dict[str, Any],
     ) -> ScenarioResult:
-        """Run a scenario with optional additional overrides beyond those in the definition."""
+        """Run a scenario with optional additional overrides beyond the definition."""
 
 
 class ModelRepository(ABC):

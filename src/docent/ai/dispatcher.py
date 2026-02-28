@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..application.service import PortfolioService
+from docent.application.service import PortfolioService
 
 
 class ToolDispatcher:
@@ -21,6 +21,7 @@ class ToolDispatcher:
     """
 
     def __init__(self, service: PortfolioService) -> None:
+        """Initialise with the PortfolioService to dispatch tool calls to."""
         self._service = service
         self._handlers: dict[str, Any] = {
             "run_scenario": self._run_scenario,
@@ -48,7 +49,7 @@ class ToolDispatcher:
         result = self._service.run_scenario(name, overrides=overrides)
         return result.to_dict()
 
-    def _override_input(self, source: str, field: str, value: Any) -> dict:
+    def _override_input(self, source: str, field: str, value: float) -> dict:
         message = self._service.override_input(source, field, value)
         return {"message": message, "source": source, "field": field, "value": value}
 

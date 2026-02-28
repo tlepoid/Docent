@@ -6,9 +6,9 @@ All Claude-specific API details are encapsulated here.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from .base import AIMessage, AIProvider, AIResponse
+from docent.ai.providers.base import AIMessage, AIProvider, AIResponse
 
 
 class ClaudeProvider(AIProvider):
@@ -16,9 +16,10 @@ class ClaudeProvider(AIProvider):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "claude-sonnet-4-6",
     ) -> None:
+        """Initialise the Anthropic client with the given API key and model."""
         try:
             import anthropic
         except ImportError as exc:
@@ -34,8 +35,9 @@ class ClaudeProvider(AIProvider):
         self,
         messages: list[AIMessage],
         tools: list[dict],
-        system: Optional[str] = None,
+        system: str | None = None,
     ) -> AIResponse:
+        """Send a conversation to Claude and return a normalised response."""
         anthropic_messages = [self._to_anthropic_message(m) for m in messages]
         anthropic_tools = [self._to_anthropic_tool(t) for t in tools]
 
@@ -51,7 +53,7 @@ class ClaudeProvider(AIProvider):
         response = self._client.messages.create(**kwargs)
 
         tool_calls: list[dict] = []
-        text_content: Optional[str] = None
+        text_content: str | None = None
 
         for block in response.content:
             if block.type == "tool_use":

@@ -12,17 +12,23 @@ import sys
 
 import click
 
-from ...application.service import PortfolioService
+from docent.ai.dispatcher import ToolDispatcher
+from docent.ai.providers.base import AIMessage, AIProvider
+from docent.ai.tools.definitions import TOOL_DEFINITIONS
+from docent.application.service import PortfolioService
+from docent.config import build_provider
 
 
 def _build_service() -> PortfolioService:
     """Wire up the service from configured adapters."""
     try:
         from examples.demo_model.model import build_repository, build_runner
+
         repository = build_repository()
         runner = build_runner()
     except ImportError:
-        from ...adapters.data.in_memory import _build_stub_wiring
+        from docent.adapters.data.in_memory import _build_stub_wiring
+
         repository, runner = _build_stub_wiring()
 
     return PortfolioService(runner=runner, repository=repository)
@@ -50,11 +56,16 @@ def list_scenarios(ctx: click.Context) -> None:
 @cli.command("run")
 @click.argument("scenario_name")
 @click.option(
-    "--override", "-o", multiple=True, metavar="FIELD=VALUE",
+    "--override",
+    "-o",
+    multiple=True,
+    metavar="FIELD=VALUE",
     help="Override an input field for this run, e.g. -o credit_spread=150",
 )
 @click.pass_context
-def run_scenario(ctx: click.Context, scenario_name: str, override: tuple[str, ...]) -> None:
+def run_scenario(
+    ctx: click.Context, scenario_name: str, override: tuple[str, ...]
+) -> None:
     """Run a named scenario and print results as JSON."""
     service: PortfolioService = ctx.obj["service"]
 
@@ -77,7 +88,9 @@ def run_scenario(ctx: click.Context, scenario_name: str, override: tuple[str, ..
 @cli.command("compare")
 @click.argument("scenario_a")
 @click.argument("scenario_b")
-@click.option("--metric", "-m", multiple=True, help="Restrict comparison to this output field")
+@click.option(
+    "--metric", "-m", multiple=True, help="Restrict comparison to this output field"
+)
 @click.pass_context
 def compare(
     ctx: click.Context,
@@ -88,7 +101,8 @@ def compare(
     """Compare two scenarios side by side."""
     service: PortfolioService = ctx.obj["service"]
     comparison = service.compare_scenarios(
-        scenario_a, scenario_b,
+        scenario_a,
+        scenario_b,
         metrics=list(metric) if metric else None,
     )
     click.echo(json.dumps(comparison.to_dict(), indent=2))
@@ -119,3 +133,73 @@ def reset_overrides(ctx: click.Context) -> None:
     """Clear all active overrides and restore model defaults."""
     service: PortfolioService = ctx.obj["service"]
     click.echo(service.reset_overrides())
+
+
+def _run_chat_turn(
+    messages: list[AIMessage],
+    provider: AIProvider,
+    dispatcher: ToolDispatcher,
+) -> str:
+    """Send messages to the provider, handle tool calls, return the final response."""
+    while True:
+        response = provider.chat(messages, tools=TOOL_DEFINITIONS)
+        messages.append(response.message)
+
+        if not response.tool_calls:
+            return response.message.content or ""
+
+        for tc in response.tool_calls:
+            result = dispatcher.dispatch(tc["name"], tc["arguments"])
+            messages.append(
+                AIMessage(
+                    role="tool",
+                    content=json.dumps(result),
+                    tool_call_id=tc["id"],
+                    name=tc["name"],
+                )
+            )
+
+
+@cli.command("chat")
+@click.argument("question", required=False)
+@click.pass_context
+def chat(ctx: click.Context, question: str | None) -> None:
+    """Chat with an AI about the portfolio model. Omit QUESTION for interactive mode."""
+    service: PortfolioService = ctx.obj["service"]
+    service.get_model_schema()
+
+    try:
+        provider = build_provider()
+    except Exception as exc:
+        click.echo(f"Could not build AI provider: {exc}", err=True)
+        sys.exit(1)
+
+    dispatcher = ToolDispatcher(service)
+
+    if question:
+        messages = [AIMessage(role="user", content=question)]
+        reply = _run_chat_turn(messages, provider, dispatcher)
+        click.echo(reply)
+        return
+
+    # Interactive REPL
+    click.echo("Docent chat — type 'exit' or Ctrl+D to quit.\n")
+    messages: list[AIMessage] = []
+    while True:
+        try:
+            user_input = click.prompt("You", prompt_suffix="> ")
+        except (EOFError, KeyboardInterrupt):
+            click.echo()
+            break
+
+        if user_input.strip().lower() in {"exit", "quit"}:
+            break
+
+        messages.append(AIMessage(role="user", content=user_input))
+        try:
+            reply = _run_chat_turn(messages, provider, dispatcher)
+        except Exception as exc:
+            click.echo(f"Error: {exc}", err=True)
+            continue
+
+        click.echo(f"\n{reply}\n")

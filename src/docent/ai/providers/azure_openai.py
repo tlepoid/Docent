@@ -7,9 +7,8 @@ All Azure OpenAI-specific API details are encapsulated here.
 from __future__ import annotations
 
 import json
-from typing import Optional
 
-from .base import AIMessage, AIProvider, AIResponse
+from docent.ai.providers.base import AIMessage, AIProvider, AIResponse
 
 
 class AzureOpenAIProvider(AIProvider):
@@ -22,6 +21,7 @@ class AzureOpenAIProvider(AIProvider):
         deployment_name: str,
         api_version: str = "2024-02-01",
     ) -> None:
+        """Initialise the Azure OpenAI client with endpoint and deployment details."""
         try:
             from openai import AzureOpenAI
         except ImportError as exc:
@@ -43,8 +43,9 @@ class AzureOpenAIProvider(AIProvider):
         self,
         messages: list[AIMessage],
         tools: list[dict],
-        system: Optional[str] = None,
+        system: str | None = None,
     ) -> AIResponse:
+        """Send a conversation to Azure OpenAI and return a normalised response."""
         oai_messages = []
         if system:
             oai_messages.append({"role": "system", "content": system})

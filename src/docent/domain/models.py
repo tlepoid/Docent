@@ -7,8 +7,8 @@ These are plain dataclasses with no framework dependencies. All adapters
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 
 @dataclass
@@ -16,14 +16,15 @@ class InputField:
     """A single model input variable."""
 
     name: str
-    source: str           # logical grouping, e.g. "rates", "credit", "equity"
+    source: str  # logical grouping, e.g. "rates", "credit", "equity"
     description: str
     units: str
     typical_min: float
     typical_max: float
-    current_value: Optional[float] = None
+    current_value: float | None = None
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "name": self.name,
             "source": self.source,
@@ -43,10 +44,11 @@ class OutputField:
     description: str
     units: str
     interpretation: str
-    good_threshold: Optional[float] = None  # value below which result is concerning
-    bad_threshold: Optional[float] = None   # value below which result is critical
+    good_threshold: float | None = None  # value below which result is concerning
+    bad_threshold: float | None = None  # value below which result is critical
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "name": self.name,
             "description": self.description,
@@ -69,6 +71,7 @@ class ModelSchema:
     caveats: list[str]
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "name": self.name,
             "description": self.description,
@@ -89,6 +92,7 @@ class ScenarioDefinition:
     overrides: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "name": self.name,
             "description": self.description,
@@ -105,9 +109,10 @@ class ScenarioResult:
     inputs_used: dict[str, Any]
     outputs: dict[str, Any]
     overrides_applied: dict[str, Any]
-    run_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    run_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "scenario_name": self.scenario_name,
             "inputs_used": self.inputs_used,
@@ -124,9 +129,10 @@ class Override:
     source: str
     field: str
     value: Any
-    applied_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    applied_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "source": self.source,
             "field": self.field,
@@ -145,6 +151,7 @@ class ScenarioComparison:
     differences: dict[str, dict]  # metric -> {a, b, delta, pct_change}
 
     def to_dict(self) -> dict:
+        """Serialise to a JSON-compatible dict."""
         return {
             "scenario_a": self.scenario_a.to_dict(),
             "scenario_b": self.scenario_b.to_dict(),

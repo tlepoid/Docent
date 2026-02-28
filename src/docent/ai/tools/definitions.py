@@ -28,7 +28,7 @@ TOOL_DEFINITIONS: list[dict] = [
                         "type": "object",
                         "description": (
                             "Optional map of input field names to numeric values to "
-                            "override for this run only. These do not persist between calls."
+                            "override for this run only. These do not persist."
                         ),
                         "additionalProperties": {"type": "number"},
                     },
@@ -51,7 +51,7 @@ TOOL_DEFINITIONS: list[dict] = [
                 "properties": {
                     "source": {
                         "type": "string",
-                        "description": "The input source group, e.g. 'rates', 'credit', 'equity'.",
+                        "description": "The input source group, e.g. 'rates'.",
                     },
                     "field": {
                         "type": "string",
@@ -82,7 +82,7 @@ TOOL_DEFINITIONS: list[dict] = [
         "function": {
             "name": "compare_scenarios",
             "description": (
-                "Run two named scenarios and return a structured side-by-side comparison "
+                "Run two named scenarios and return a side-by-side comparison "
                 "of their outputs, including absolute and percentage differences. "
                 "Optionally restrict the comparison to specific output metrics."
             ),

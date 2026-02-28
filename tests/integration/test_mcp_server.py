@@ -8,7 +8,8 @@ from docent.application.service import PortfolioService
 
 
 @pytest.fixture(autouse=True)
-def wired_mcp(service: PortfolioService):
+def wired_mcp(service: PortfolioService) -> None:
+    """Wire the test service into the MCP server for each test."""
     set_service(service)
     yield mcp
     mcp_module._service = None
@@ -37,6 +38,7 @@ def test_override_then_run_reflects_override() -> None:
 
 
 def test_reset_clears_overrides() -> None:
+    """Test that reset_overrides restores default values."""
     mcp_module.override_input("rates", "rate", 6.0)
     mcp_module.reset_overrides()
     result = mcp_module.run_scenario("base")
@@ -44,13 +46,16 @@ def test_reset_clears_overrides() -> None:
 
 
 def test_compare_scenarios_end_to_end() -> None:
+    """Test full round-trip comparison of two scenarios."""
     result = mcp_module.compare_scenarios("base", "stress")
     assert "differences" in result
     assert result["differences"]["value"]["delta"] == pytest.approx(-6.5)
 
 
 def test_schema_resource_is_valid_json() -> None:
+    """Test that the model schema resource returns valid JSON."""
     import json
+
     raw = mcp_module.get_model_schema()
     data = json.loads(raw)
     assert "name" in data
@@ -59,7 +64,9 @@ def test_schema_resource_is_valid_json() -> None:
 
 
 def test_overrides_resource_reflects_active_overrides() -> None:
+    """Test that the overrides resource reflects currently active overrides."""
     import json
+
     mcp_module.override_input("rates", "rate", 6.0)
     raw = mcp_module.get_current_overrides()
     data = json.loads(raw)
@@ -68,7 +75,9 @@ def test_overrides_resource_reflects_active_overrides() -> None:
 
 
 def test_results_resource_reflects_latest_run() -> None:
+    """Test that the results resource reflects the most recent scenario run."""
     import json
+
     mcp_module.run_scenario("base")
     raw = mcp_module.get_latest_results()
     data = json.loads(raw)

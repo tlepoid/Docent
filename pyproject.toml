@@ -7,20 +7,18 @@ name = "docent"
 version = "0.1.0"
 description = "Provider-agnostic natural language AI interface for scenario-driven modelling"
 requires-python = ">=3.10"
-dependencies = [
-    "mcp>=1.0.0",
-    "click>=8.0",
-    "python-dotenv>=1.0",
-]
+dependencies = ["mcp>=1.0.0", "click>=8.0", "python-dotenv>=1.0"]
 
 [project.optional-dependencies]
 claude = ["anthropic>=0.40.0"]
 azure = ["openai>=1.0.0"]
 dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-    "pytest-mock>=3.12",
-    "mcp[cli]",
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "pytest-mock>=3.12",
+  "mcp[cli]",
+  "pre-commit>=4.5.1",
+  "ruff>=0.15.4",
 ]
 
 [project.scripts]
