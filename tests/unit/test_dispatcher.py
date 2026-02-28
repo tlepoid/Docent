@@ -3,11 +3,11 @@
 import pytest
 
 from docent.ai.dispatcher import ToolDispatcher
-from docent.application.service import PortfolioService
+from docent.application.service import ModelService
 
 
 @pytest.fixture
-def dispatcher(service: PortfolioService) -> ToolDispatcher:
+def dispatcher(service: ModelService) -> ToolDispatcher:
     """Build a ToolDispatcher wired to the test service."""
     return ToolDispatcher(service)
 

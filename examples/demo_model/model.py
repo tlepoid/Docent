@@ -364,3 +364,13 @@ def build_runner() -> FunctionalScenarioRunner:
         model_fn=bond_portfolio_model,
         base_inputs=BASE_INPUTS,
     )
+
+
+def build_service():
+    """Build a fully wired ModelService for the demo bond portfolio model."""
+    import docent
+
+    return docent.ModelService(
+        runner=build_runner(),
+        repository=build_repository(),
+    )

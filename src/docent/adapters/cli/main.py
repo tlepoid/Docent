@@ -1,8 +1,13 @@
 """CLI adapter for Docent.
 
-Provides a command-line interface that calls the same PortfolioService
-as the MCP server. No business logic lives here — this is a thin
-translation layer from CLI arguments to service method calls.
+Provides a command-line interface for running scenarios and chatting with an AI.
+No business logic lives here — this is a thin translation layer.
+
+Usage::
+
+    docent --service myapp.model:build_service run base_case
+    docent --service myapp.model:build_service chat
+    DOCENT_SERVICE=myapp.model:service docent compare base stress
 """
 
 from __future__ import annotations
@@ -12,41 +17,46 @@ import sys
 
 import click
 
-from docent.ai.dispatcher import ToolDispatcher
-from docent.ai.providers.base import AIMessage, AIProvider
-from docent.ai.tools.definitions import TOOL_DEFINITIONS
-from docent.application.service import PortfolioService
-from docent.config import build_provider
+import docent
+from docent.application.service import ModelService
 
 
-def _build_service() -> PortfolioService:
-    """Wire up the service from configured adapters."""
-    try:
-        from examples.demo_model.model import build_repository, build_runner
+def _load_service(path: str | None) -> ModelService:
+    """Load the service from a path, or fall back to stub wiring."""
+    if path:
+        try:
+            return docent.load_service(path)
+        except Exception as exc:
+            raise click.UsageError(
+                f"Could not load service from '{path}': {exc}"
+            ) from exc
 
-        repository = build_repository()
-        runner = build_runner()
-    except ImportError:
-        from docent.adapters.data.in_memory import _build_stub_wiring
+    from docent.adapters.data.in_memory import _build_stub_wiring
 
-        repository, runner = _build_stub_wiring()
-
-    return PortfolioService(runner=runner, repository=repository)
+    repository, runner = _build_stub_wiring()
+    return ModelService(runner=runner, repository=repository)
 
 
 @click.group()
+@click.option(
+    "--service",
+    "service_path",
+    envvar="DOCENT_SERVICE",
+    default=None,
+    help="Service path: 'module:attribute'. Also reads DOCENT_SERVICE env var.",
+)
 @click.pass_context
-def cli(ctx: click.Context) -> None:
-    """Docent — natural language AI interface for portfolio modelling."""
+def cli(ctx: click.Context, service_path: str | None) -> None:
+    """Docent — natural language AI interface for scenario-driven modelling."""
     ctx.ensure_object(dict)
-    ctx.obj["service"] = _build_service()
+    ctx.obj["service"] = _load_service(service_path)
 
 
 @cli.command("scenarios")
 @click.pass_context
 def list_scenarios(ctx: click.Context) -> None:
     """List all available scenarios."""
-    service: PortfolioService = ctx.obj["service"]
+    service: ModelService = ctx.obj["service"]
     for s in service.get_available_scenarios():
         click.echo(f"\n{s.name}")
         click.echo(f"  {s.description}")
@@ -60,14 +70,14 @@ def list_scenarios(ctx: click.Context) -> None:
     "-o",
     multiple=True,
     metavar="FIELD=VALUE",
-    help="Override an input field for this run, e.g. -o credit_spread=150",
+    help="Override an input field for this run, e.g. -o yield_10y=5.0",
 )
 @click.pass_context
 def run_scenario(
     ctx: click.Context, scenario_name: str, override: tuple[str, ...]
 ) -> None:
     """Run a named scenario and print results as JSON."""
-    service: PortfolioService = ctx.obj["service"]
+    service: ModelService = ctx.obj["service"]
 
     overrides: dict = {}
     for o in override:
@@ -99,7 +109,7 @@ def compare(
     metric: tuple[str, ...],
 ) -> None:
     """Compare two scenarios side by side."""
-    service: PortfolioService = ctx.obj["service"]
+    service: ModelService = ctx.obj["service"]
     comparison = service.compare_scenarios(
         scenario_a,
         scenario_b,
@@ -112,7 +122,7 @@ def compare(
 @click.pass_context
 def show_schema(ctx: click.Context) -> None:
     """Print the full model schema as JSON."""
-    service: PortfolioService = ctx.obj["service"]
+    service: ModelService = ctx.obj["service"]
     click.echo(json.dumps(service.get_model_schema().to_dict(), indent=2))
 
 
@@ -123,7 +133,7 @@ def show_schema(ctx: click.Context) -> None:
 @click.pass_context
 def set_override(ctx: click.Context, source: str, field: str, value: float) -> None:
     """Apply a persistent session override to an input field."""
-    service: PortfolioService = ctx.obj["service"]
+    service: ModelService = ctx.obj["service"]
     click.echo(service.override_input(source, field, value))
 
 
@@ -131,75 +141,18 @@ def set_override(ctx: click.Context, source: str, field: str, value: float) -> N
 @click.pass_context
 def reset_overrides(ctx: click.Context) -> None:
     """Clear all active overrides and restore model defaults."""
-    service: PortfolioService = ctx.obj["service"]
+    service: ModelService = ctx.obj["service"]
     click.echo(service.reset_overrides())
-
-
-def _run_chat_turn(
-    messages: list[AIMessage],
-    provider: AIProvider,
-    dispatcher: ToolDispatcher,
-) -> str:
-    """Send messages to the provider, handle tool calls, return the final response."""
-    while True:
-        response = provider.chat(messages, tools=TOOL_DEFINITIONS)
-        messages.append(response.message)
-
-        if not response.tool_calls:
-            return response.message.content or ""
-
-        for tc in response.tool_calls:
-            result = dispatcher.dispatch(tc["name"], tc["arguments"])
-            messages.append(
-                AIMessage(
-                    role="tool",
-                    content=json.dumps(result),
-                    tool_call_id=tc["id"],
-                    name=tc["name"],
-                )
-            )
 
 
 @cli.command("chat")
 @click.argument("question", required=False)
 @click.pass_context
 def chat(ctx: click.Context, question: str | None) -> None:
-    """Chat with an AI about the portfolio model. Omit QUESTION for interactive mode."""
-    service: PortfolioService = ctx.obj["service"]
-    service.get_model_schema()
-
+    """Chat with an AI about the model. Omit QUESTION for interactive mode."""
+    service: ModelService = ctx.obj["service"]
     try:
-        provider = build_provider()
+        docent.run_chat(service, question=question)
     except Exception as exc:
-        click.echo(f"Could not build AI provider: {exc}", err=True)
+        click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
-
-    dispatcher = ToolDispatcher(service)
-
-    if question:
-        messages = [AIMessage(role="user", content=question)]
-        reply = _run_chat_turn(messages, provider, dispatcher)
-        click.echo(reply)
-        return
-
-    # Interactive REPL
-    click.echo("Docent chat — type 'exit' or Ctrl+D to quit.\n")
-    messages: list[AIMessage] = []
-    while True:
-        try:
-            user_input = click.prompt("You", prompt_suffix="> ")
-        except (EOFError, KeyboardInterrupt):
-            click.echo()
-            break
-
-        if user_input.strip().lower() in {"exit", "quit"}:
-            break
-
-        messages.append(AIMessage(role="user", content=user_input))
-        try:
-            reply = _run_chat_turn(messages, provider, dispatcher)
-        except Exception as exc:
-            click.echo(f"Error: {exc}", err=True)
-            continue
-
-        click.echo(f"\n{reply}\n")

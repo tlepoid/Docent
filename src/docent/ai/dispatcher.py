@@ -1,7 +1,7 @@
 """Tool execution dispatcher — shared across all AI providers.
 
 When any provider returns a tool call, this dispatcher handles it by routing
-to the appropriate PortfolioService method. Provider identity is irrelevant here:
+to the appropriate ModelService method. Provider identity is irrelevant here:
 the same dispatcher handles tool calls from Claude, Azure OpenAI, or any other provider.
 """
 
@@ -9,19 +9,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from docent.application.service import PortfolioService
+from docent.application.service import ModelService
 
 
 class ToolDispatcher:
     """
-    Routes tool call requests from AI providers to the PortfolioService.
+    Routes tool call requests from AI providers to the ModelService.
 
     Always returns a JSON-serialisable dict. Errors are returned as structured
     dicts rather than raised, so the provider can relay them to the user.
     """
 
-    def __init__(self, service: PortfolioService) -> None:
-        """Initialise with the PortfolioService to dispatch tool calls to."""
+    def __init__(self, service: ModelService) -> None:
+        """Initialise with the ModelService to dispatch tool calls to."""
         self._service = service
         self._handlers: dict[str, Any] = {
             "run_scenario": self._run_scenario,
