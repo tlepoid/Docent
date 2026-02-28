@@ -9,11 +9,12 @@ Or via the docent-mcp entry point:
 Then connect Claude Desktop using claude_desktop_config.json.example.
 """
 
-import docent
+from docent.adapters.mcp_server.server import mcp, set_service
 
 from model import build_service
 
 service = build_service()
+set_service(service)
 
 if __name__ == "__main__":
-    docent.run_mcp(service)
+    mcp.run()
