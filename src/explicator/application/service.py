@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from docent.domain.models import (
+from explicator.domain.models import (
     ModelSchema,
     Override,
     ScenarioComparison,
     ScenarioDefinition,
     ScenarioResult,
 )
-from docent.domain.ports import ModelRepository, ScenarioRunner
+from explicator.domain.ports import ModelRepository, ScenarioRunner
 
 
 class ModelService:

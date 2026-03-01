@@ -2,7 +2,7 @@
 
 import pytest
 
-from docent.application.service import ModelService
+from explicator.application.service import ModelService
 
 
 def test_get_available_scenarios(service: ModelService) -> None:

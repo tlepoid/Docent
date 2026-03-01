@@ -3,8 +3,9 @@ requires = ["uv_build>=0.6"]
 build-backend = "uv_build"
 
 [project]
-name = "docent"
+name = "explicator"
 version = "0.1.0"
+authors = [{ name = "Tim le Poidevin", email = "lepoidevin.tim@gmail.com" }]
 description = "Provider-agnostic natural language AI interface for scenario-driven modelling"
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0", "click>=8.0", "python-dotenv>=1.0"]
@@ -22,8 +23,8 @@ dev = [
 ]
 
 [project.scripts]
-docent = "docent.adapters.cli.main:cli"
-docent-mcp = "docent.adapters.mcp_server.server:main"
+explicator = "explicator.adapters.cli.main:cli"
+explicator-mcp = "explicator.adapters.mcp_server.server:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

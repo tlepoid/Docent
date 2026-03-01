@@ -1,4 +1,4 @@
-"""Configuration loading for Docent.
+"""Configuration loading for Explicator.
 
 Reads from environment variables with optional .env file support.
 Follows the existing application pattern — no new config mechanisms.
@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from docent.ai.providers.base import AIProvider
+    from explicator.ai.providers.base import AIProvider
 
 
 @dataclass
@@ -53,12 +53,12 @@ def build_provider(config: Config | None = None) -> AIProvider:
         config = load_config()
 
     if config.ai_provider == "claude":
-        from docent.ai.providers.claude import ClaudeProvider
+        from explicator.ai.providers.claude import ClaudeProvider
 
         return ClaudeProvider(api_key=config.claude_api_key, model=config.claude_model)
 
     if config.ai_provider == "azure_openai":
-        from docent.ai.providers.azure_openai import AzureOpenAIProvider
+        from explicator.ai.providers.azure_openai import AzureOpenAIProvider
 
         return AzureOpenAIProvider(
             api_key=config.azure_api_key,

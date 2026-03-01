@@ -1,1 +1,1 @@
-"""Integration tests for Docent."""
+"""Integration tests for Explicator."""

@@ -1,1 +1,1 @@
-"""Test suite for Docent."""
+"""Test suite for Explicator."""

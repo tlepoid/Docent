@@ -5,7 +5,7 @@
 #             Usage: ./entrypoint.sh [command] [args...]
 #             Examples:
 #               ./entrypoint.sh                                                   # run demo MCP server
-#               ./entrypoint.sh docent --service examples.demo_model.model:build_service scenarios
+#               ./entrypoint.sh explicator --service examples.demo_model.model:build_service scenarios
 #               ./entrypoint.sh pytest
 
 set -e

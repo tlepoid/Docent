@@ -2,9 +2,9 @@
 
 import pytest
 
-import docent.adapters.mcp_server.server as mcp_module
-from docent.adapters.mcp_server.server import mcp, set_service
-from docent.application.service import ModelService
+import explicator.adapters.mcp_server.server as mcp_module
+from explicator.adapters.mcp_server.server import mcp, set_service
+from explicator.application.service import ModelService
 
 
 @pytest.fixture(autouse=True)
@@ -18,7 +18,7 @@ def wired_mcp(service: ModelService) -> None:
 def test_mcp_server_module_imports() -> None:
     """MCP server module should import and expose the FastMCP instance."""
     assert mcp is not None
-    assert mcp.name == "Docent"
+    assert mcp.name == "Explicator"
 
 
 def test_run_scenario_end_to_end() -> None:

@@ -1,13 +1,13 @@
-"""MCP Server adapter for Docent.
+"""MCP Server adapter for Explicator.
 
 Exposes the ModelService as an MCP server with tools, resources, and prompts.
 This adapter sits alongside the CLI as a parallel entry point into the application
 layer — it does not bypass or duplicate any domain logic.
 
 Start with:
-    python -m docent.adapters.mcp_server
+    python -m explicator.adapters.mcp_server
 or via the entry point:
-    docent-mcp
+    explicator-mcp
 """
 
 from __future__ import annotations
@@ -16,14 +16,14 @@ import json
 
 from mcp.server.fastmcp import FastMCP
 
-from docent.application.service import ModelService
+from explicator.application.service import ModelService
 
 # Module-level service instance set by the application wiring.
 # Using a module-level variable allows the MCP decorators to close over it
 # while keeping the server testable via set_service().
 _service: ModelService | None = None
 
-mcp = FastMCP("Docent")
+mcp = FastMCP("Explicator")
 
 
 def set_service(service: ModelService) -> None:
@@ -288,18 +288,18 @@ def main() -> None:
 
     Reads an optional service path from the first CLI argument::
 
-        docent-mcp myapp.model:build_service
+        explicator-mcp myapp.model:build_service
 
     Falls back to stub wiring if no path is given.
     """
     import sys
 
     if len(sys.argv) > 1:
-        import docent as _docent
+        import explicator as _explicator
 
-        service = _docent.load_service(sys.argv[1])
+        service = _explicator.load_service(sys.argv[1])
     else:
-        from docent.adapters.data.in_memory import _build_stub_wiring
+        from explicator.adapters.data.in_memory import _build_stub_wiring
 
         repository, runner = _build_stub_wiring()
         service = ModelService(runner=runner, repository=repository)

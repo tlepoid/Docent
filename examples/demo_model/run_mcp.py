@@ -3,13 +3,13 @@
 Run with:
     uv run mcp dev examples/demo_model/run_mcp.py
 
-Or via the docent-mcp entry point:
-    docent-mcp examples.demo_model.model:build_service
+Or via the explicator-mcp entry point:
+    explicator-mcp examples.demo_model.model:build_service
 
 Then connect Claude Desktop using claude_desktop_config.json.example.
 """
 
-from docent.adapters.mcp_server.server import mcp, set_service
+from explicator.adapters.mcp_server.server import mcp, set_service
 
 from model import build_service
 

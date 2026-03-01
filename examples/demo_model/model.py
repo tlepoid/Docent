@@ -1,8 +1,8 @@
 """Demo model: Bond Portfolio Risk Model.
 
-A simplified fixed-income portfolio model for demonstrating Docent.
+A simplified fixed-income portfolio model for demonstrating Explicator.
 Shows how to implement the ScenarioRunner and ModelRepository ports
-using the in-memory adapters provided by Docent.
+using the in-memory adapters provided by Explicator.
 
 Not production-ready — designed to be readable and illustrative.
 """
@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from docent.adapters.data.in_memory import FunctionalScenarioRunner, InMemoryModelRepository
-from docent.domain.models import (
+from explicator.adapters.data.in_memory import FunctionalScenarioRunner, InMemoryModelRepository
+from explicator.domain.models import (
     InputField,
     ModelSchema,
     OutputField,
@@ -368,9 +368,9 @@ def build_runner() -> FunctionalScenarioRunner:
 
 def build_service():
     """Build a fully wired ModelService for the demo bond portfolio model."""
-    import docent
+    import explicator
 
-    return docent.ModelService(
+    return explicator.ModelService(
         runner=build_runner(),
         repository=build_repository(),
     )

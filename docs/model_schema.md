@@ -1,6 +1,6 @@
-# Docent Model Schema — Bond Portfolio Risk Model (Demo)
+# Explicator Model Schema — Bond Portfolio Risk Model (Demo)
 
-> This document describes the demo model bundled with Docent. When you connect
+> This document describes the demo model bundled with Explicator. When you connect
 > your own model, replace this document with an equivalent description of your
 > inputs, outputs, and assumptions. This is the primary source of truth for
 > Claude's understanding of the domain — write it as if explaining the model to

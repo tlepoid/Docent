@@ -2,8 +2,8 @@
 
 import pytest
 
-from docent.ai.dispatcher import ToolDispatcher
-from docent.application.service import ModelService
+from explicator.ai.dispatcher import ToolDispatcher
+from explicator.application.service import ModelService
 
 
 @pytest.fixture

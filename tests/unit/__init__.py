@@ -1,1 +1,1 @@
-"""Unit tests for Docent."""
+"""Unit tests for Explicator."""

@@ -1,4 +1,4 @@
-"""Docent — provider-agnostic AI interface for scenario-driven modelling."""
+"""Explicator — provider-agnostic AI interface for scenario-driven modelling."""
 
 from __future__ import annotations
 
@@ -6,12 +6,12 @@ import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from docent.adapters.data.in_memory import (
+from explicator.adapters.data.in_memory import (
     FunctionalScenarioRunner,
     InMemoryModelRepository,
 )
-from docent.application.service import ModelService
-from docent.domain.models import (
+from explicator.application.service import ModelService
+from explicator.domain.models import (
     InputField,
     ModelSchema,
     OutputField,
@@ -20,10 +20,10 @@ from docent.domain.models import (
     ScenarioDefinition,
     ScenarioResult,
 )
-from docent.domain.ports import ModelRepository, ScenarioRunner
+from explicator.domain.ports import ModelRepository, ScenarioRunner
 
 if TYPE_CHECKING:
-    from docent.ai.providers.base import AIProvider
+    from explicator.ai.providers.base import AIProvider
 
 __version__ = "0.1.0"
 
@@ -61,7 +61,7 @@ def create(
 
     Example::
 
-        service = docent.create(
+        service = explicator.create(
             model_fn=my_model,
             base_inputs={"rate": 5.0},
             schema=my_schema,
@@ -79,9 +79,9 @@ def run_mcp(service: ModelService) -> None:
     Intended as the entry point in your run script::
 
         if __name__ == "__main__":
-            docent.run_mcp(service)
+            explicator.run_mcp(service)
     """
-    from docent.adapters.mcp_server.server import mcp, set_service
+    from explicator.adapters.mcp_server.server import mcp, set_service
 
     set_service(service)
     mcp.run()
@@ -101,10 +101,10 @@ def run_chat(
         question: If provided, answer this single question and return.
                   If omitted, start an interactive REPL.
     """
-    from docent.ai.dispatcher import ToolDispatcher
-    from docent.ai.providers.base import AIMessage
-    from docent.ai.tools.definitions import TOOL_DEFINITIONS
-    from docent.config import build_provider
+    from explicator.ai.dispatcher import ToolDispatcher
+    from explicator.ai.providers.base import AIMessage
+    from explicator.ai.tools.definitions import TOOL_DEFINITIONS
+    from explicator.config import build_provider
 
     provider = build_provider()
     dispatcher = ToolDispatcher(service)
@@ -130,7 +130,7 @@ def run_chat(
         print(_turn([AIMessage(role="user", content=question)]))
         return
 
-    print("Docent chat — type 'exit' or Ctrl+D to quit.\n")
+    print("Explicator chat — type 'exit' or Ctrl+D to quit.\n")
     messages: list[AIMessage] = []
     while True:
         try:
@@ -153,8 +153,8 @@ def load_service(path: str) -> ModelService:
 
     Example::
 
-        service = docent.load_service("myapp.model:build_service")
-        service = docent.load_service("myapp.model:service")
+        service = explicator.load_service("myapp.model:build_service")
+        service = explicator.load_service("myapp.model:service")
     """
     import importlib
 

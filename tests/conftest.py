@@ -7,12 +7,12 @@ from typing import Any
 
 import pytest
 
-from docent.adapters.data.in_memory import (
+from explicator.adapters.data.in_memory import (
     FunctionalScenarioRunner,
     InMemoryModelRepository,
 )
-from docent.application.service import ModelService
-from docent.domain.models import (
+from explicator.application.service import ModelService
+from explicator.domain.models import (
     InputField,
     ModelSchema,
     OutputField,

@@ -7,7 +7,7 @@ infrastructure/data layer. Concrete implementations live in adapters/data/.
 from abc import ABC, abstractmethod
 from typing import Any
 
-from docent.domain.models import (
+from explicator.domain.models import (
     InputField,
     ModelSchema,
     ScenarioDefinition,

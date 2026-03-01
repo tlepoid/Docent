@@ -1,13 +1,13 @@
-"""CLI adapter for Docent.
+"""CLI adapter for Explicator.
 
 Provides a command-line interface for running scenarios and chatting with an AI.
 No business logic lives here — this is a thin translation layer.
 
 Usage::
 
-    docent --service myapp.model:build_service run base_case
-    docent --service myapp.model:build_service chat
-    DOCENT_SERVICE=myapp.model:service docent compare base stress
+    explicator --service myapp.model:build_service run base_case
+    explicator --service myapp.model:build_service chat
+    EXPLICATOR_SERVICE=myapp.model:service explicator compare base stress
 """
 
 from __future__ import annotations
@@ -17,21 +17,21 @@ import sys
 
 import click
 
-import docent
-from docent.application.service import ModelService
+import explicator
+from explicator.application.service import ModelService
 
 
 def _load_service(path: str | None) -> ModelService:
     """Load the service from a path, or fall back to stub wiring."""
     if path:
         try:
-            return docent.load_service(path)
+            return explicator.load_service(path)
         except Exception as exc:
             raise click.UsageError(
                 f"Could not load service from '{path}': {exc}"
             ) from exc
 
-    from docent.adapters.data.in_memory import _build_stub_wiring
+    from explicator.adapters.data.in_memory import _build_stub_wiring
 
     repository, runner = _build_stub_wiring()
     return ModelService(runner=runner, repository=repository)
@@ -41,13 +41,13 @@ def _load_service(path: str | None) -> ModelService:
 @click.option(
     "--service",
     "service_path",
-    envvar="DOCENT_SERVICE",
+    envvar="EXPLICATOR_SERVICE",
     default=None,
-    help="Service path: 'module:attribute'. Also reads DOCENT_SERVICE env var.",
+    help="Service path: 'module:attribute'. Also reads EXPLICATOR_SERVICE env var.",
 )
 @click.pass_context
 def cli(ctx: click.Context, service_path: str | None) -> None:
-    """Docent — natural language AI interface for scenario-driven modelling."""
+    """Explicator — natural language AI interface for scenario-driven modelling."""
     ctx.ensure_object(dict)
     ctx.obj["service"] = _load_service(service_path)
 
@@ -152,7 +152,7 @@ def chat(ctx: click.Context, question: str | None) -> None:
     """Chat with an AI about the model. Omit QUESTION for interactive mode."""
     service: ModelService = ctx.obj["service"]
     try:
-        docent.run_chat(service, question=question)
+        explicator.run_chat(service, question=question)
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)

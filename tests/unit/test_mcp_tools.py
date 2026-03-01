@@ -6,8 +6,8 @@ The MCP server module is wired with the test service via set_service().
 
 import pytest
 
-import docent.adapters.mcp_server.server as mcp_module
-from docent.application.service import ModelService
+import explicator.adapters.mcp_server.server as mcp_module
+from explicator.application.service import ModelService
 
 
 @pytest.fixture(autouse=True)

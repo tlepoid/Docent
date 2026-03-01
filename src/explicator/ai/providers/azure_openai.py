@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from docent.ai.providers.base import AIMessage, AIProvider, AIResponse
+from explicator.ai.providers.base import AIMessage, AIProvider, AIResponse
 
 
 class AzureOpenAIProvider(AIProvider):
@@ -27,7 +27,7 @@ class AzureOpenAIProvider(AIProvider):
         except ImportError as exc:
             raise ImportError(
                 "The 'openai' package is required for AzureOpenAIProvider. "
-                "Install it with: pip install 'docent[azure]'"
+                "Install it with: pip install 'explicator[azure]'"
             ) from exc
 
         from openai import AzureOpenAI

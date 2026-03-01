@@ -9,14 +9,14 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from docent.domain.models import (
+from explicator.domain.models import (
     InputField,
     ModelSchema,
     OutputField,
     ScenarioDefinition,
     ScenarioResult,
 )
-from docent.domain.ports import ModelRepository, ScenarioRunner
+from explicator.domain.ports import ModelRepository, ScenarioRunner
 
 
 class InMemoryModelRepository(ModelRepository):

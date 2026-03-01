@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from docent.ai.providers.base import AIMessage, AIProvider, AIResponse
+from explicator.ai.providers.base import AIMessage, AIProvider, AIResponse
 
 
 class ClaudeProvider(AIProvider):
@@ -25,7 +25,7 @@ class ClaudeProvider(AIProvider):
         except ImportError as exc:
             raise ImportError(
                 "The 'anthropic' package is required for ClaudeProvider. "
-                "Install it with: pip install 'docent[claude]'"
+                "Install it with: pip install 'explicator[claude]'"
             ) from exc
 
         self._client = anthropic.Anthropic(api_key=api_key)

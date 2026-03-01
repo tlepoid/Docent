@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from docent.application.service import ModelService
+from explicator.application.service import ModelService
 
 
 class ToolDispatcher:
