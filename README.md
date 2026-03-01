@@ -5,7 +5,7 @@
 
 </div>
 
-`Explicator` guides users through your data application the way a museum explicator guides visitors through an exhibition — bringing expert context to complex material. It adds a natural language AI interface to scenario-driven modelling applications, letting non-technical users ask questions, run scenarios, and interpret results without leaving their workflow.
+`Explicator` bridges the gap between complex analytical models and the people who need to understand them. Ask a question in plain English, it identifies the right scenarios to run, executes them against your model, and returns a clear explanation of what the results mean. No model expertise required.
 
 Provider-agnostic by design, Explicator works with Claude, Azure OpenAI, Copilot, or any LLM your organisation uses.
 
@@ -116,7 +116,11 @@ Copy `claude_desktop_config.json.example` into your Claude Desktop config:
   "mcpServers": {
     "explicator": {
       "command": "python",
-      "args": ["-m", "explicator.adapters.mcp_server", "myapp.model:build_service"],
+      "args": [
+        "-m",
+        "explicator.adapters.mcp_server",
+        "myapp.model:build_service"
+      ],
       "env": {
         "ANTHROPIC_API_KEY": "your-api-key-here"
       }
