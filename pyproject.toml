@@ -4,9 +4,10 @@ build-backend = "uv_build"
 
 [project]
 name = "explicator"
-version = "0.1.0"
+version = "0.1.1"
 authors = [{ name = "Tim le Poidevin", email = "lepoidevin.tim@gmail.com" }]
-description = "Provider-agnostic natural language AI interface for scenario-driven modelling"
+description = "Provider-agnostic natural language AI interface to interact with complex analytical models"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0", "click>=8.0", "python-dotenv>=1.0"]
 
